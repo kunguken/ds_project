@@ -1,6 +1,5 @@
 from collections import OrderedDict
 from pyspark.sql import SparkSession, Row
-from pyspark.sql.types import *
 import pyspark as ps
 
 import utils_db as udb
@@ -47,7 +46,6 @@ class Spark(object):
         # rdd = self._spark.sparkContext.parallelize(items) \
         #                               .map(lambda d: Row(**OrderedDict(sorted(d.items()))))
         # df = self._spark.createDataFrame(rdd, schema)
-
 
         return df
 

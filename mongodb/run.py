@@ -1,6 +1,7 @@
 from spark_obj import Spark
+from pyspark.sql.types import *
 import utils_db as udb
-import utils_spark as usp
+
 
 dbname = 'titanic'
 f_train = 'data/train.csv'
