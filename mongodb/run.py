@@ -1,43 +1,63 @@
-from spark_obj import Spark
 from pyspark.sql.types import *
-import utils_db as udb
+import pprint
+
+from spark_obj import SparkMongoDB, SparkLocal
+import utils
 
 
-dbname = 'titanic'
-f_train = 'data/train.csv'
-f_test = 'data/test.csv'
+def load_all_data(db, coll_name):
+    # read all items from collection 'train', which is a list of dictionaries
+    train_docs = utils.read_from_collection(db, coll_name)
 
-db = udb.create_db(dbname, drop_on_exist=True)
+    spark = SparkLocal()
+    df = spark.create_dataframe(train_docs)
+    return spark, df
 
-udb.insert_to_collection(db, 'train', udb.read_from_csvfile(f_train))
-udb.insert_to_collection(db, 'test', udb.read_from_csvfile(f_test))
+def load_with_mongodb_connector(dbname, coll_name):
+    spark = SparkMongoDB(dbname, coll_name)
+    df = spark.create_dataframe()
+    return spark, df
 
-train_doc = db.train.find_one()
-udb.print_docs(train_doc)
 
-test_doc = db.test.find_one()
-udb.print_docs(test_doc)
+if __name__ == '__main__':
+    dbname = 'titanic'
+    f_train = 'data/train.csv'
+    f_test = 'data/test.csv'
+    numeric_fields = ['Survived', 'Age', 'Pclass', 'SibSp', 'Parch', 'Fare']
+    text_fields = ['Name', 'Sex', 'Ticket', 'Cabin', 'Embarked']
 
-# read all items from collection 'train', which is a list of dictionaries
-train_docs = udb.read_from_collection(db, 'train')
+    db = utils.create_db(dbname, drop_on_exist=True)
 
-# create spark dataframe from a list of dictionaries
-spark = Spark()
-df = spark.create_dataframe_from_list(train_docs)
+    # PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked
+    col_types_train = [str, int, int, str, str, float, int, int, str,float, str, str]
+    # PassengerId,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked
+    col_types_test = [str, int, str, str, float, int, int, str,float, str, str]
 
-df_ = df.select(df.Age.cast(IntegerType()).alias('Age'),
-                df.Cabin.cast(StringType()).alias('Cabin'),
-                df.Embarked.cast(StringType()).alias('Embark'),
-                df.Fare.cast(DoubleType()).alias('Fare'),
-                df.Name.cast(StringType()).alias('Name'),
-                df.Parch.cast(IntegerType()).alias('Parch'),
-                df.PassengerId.cast(StringType()).alias('PassengerId'),
-                df.Pclass.cast(IntegerType()).alias('Pclass'),
-                df.Sex.cast(StringType()).alias('Sex'),
-                df.Survived.cast(IntegerType()).alias('Survived'),
-                df.Ticket.cast(StringType()).alias('Ticket'))
+    utils.insert_to_collection(db, 'train', utils.read_from_csvfile(f_train, col_types_train))
+    utils.insert_to_collection(db, 'test', utils.read_from_csvfile(f_test, col_types_test))
 
-print 'dataframe count: {}'. format(df_.count())
-print df_.head()
-df_.printSchema()
-df_.describe().show()
+    coll_name = 'train'
+    # command line: spark-submit run.py
+    spark, df = load_all_data(db, coll_name)
+
+    # command line: spark-submit --packages org.mongodb.spark:mongo-spark-connector_2.11:2.0.0 run.py
+    # spark, df = load_with_mongodb_connector(dbname, coll_name)
+
+    print 'dataframe count: {}'. format(df.count())
+    print df.take(2)
+    df.printSchema()
+    df.describe().toPandas().transpose()
+
+    stats_numeric = spark.get_stats_summary_numeric_fields(df, numeric_fields)
+    utils.pretty_print_stats(stats_numeric)
+    stats_text = spark.get_stats_summary_text_fields(df, text_fields)
+    utils.pretty_print_stats(stats_text)
+
+    print
+    corr_matrix = spark.get_correlation_matrix(df, numeric_fields)
+    df_corr = utils.create_pandas_dataframe(corr_matrix, numeric_fields, numeric_fields)
+    print df_corr
+    print
+    cov_matrix = spark.get_covariance_matrix(df, numeric_fields)
+    df_cov = utils.create_pandas_dataframe(cov_matrix, numeric_fields, numeric_fields)
+    print df_cov
