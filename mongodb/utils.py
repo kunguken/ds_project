@@ -52,11 +52,18 @@ def read_from_collection(db, coll_name):
     return db[coll_name].find({}, {'_id': False})
 
 
-def pretty_print_stats(d):
-    for key in d:
+def pretty_print_stats(stats_dict):
+    d = stats_dict.copy()
+    num_elements_to_print = 10
+    for field in d:
         print
-        print "Field: {}".format(key)
-        pprint.pprint(d[key])
+        print "Field: {}".format(field)
+        stats = d[field]
+        for stat_name, stat in stats.items():
+            if isinstance(stat, list) and len(stat) > num_elements_to_print * 2:
+                stats[stat_name] = stat[:num_elements_to_print] + ['...'] + stat[-num_elements_to_print:]
+        pprint.pprint(d[field])
+
 
 def create_pandas_dataframe(data, index, columns):
     return pd.DataFrame(data, index, columns)
