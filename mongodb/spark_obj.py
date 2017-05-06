@@ -4,8 +4,6 @@ from pyspark.sql import functions as F
 import pyspark as ps
 import numpy as np
 
-import utils_db as udb
-
 
 class SparkObj(object):
     def join_dataframes(self, df1, df2, df1_key, df2_key):
