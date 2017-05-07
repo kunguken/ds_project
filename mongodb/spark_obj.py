@@ -8,12 +8,10 @@ import numpy as np
 class SparkObj(object):
     def join_dataframes(self, df1, df2, df1_key, df2_key):
         """ Join two pyspark DataFrames
-
         Args:
             df1, df2: pyspark DataFrames
             df1_key (str): column of df1 to join on
             df2_key (str): column of df2 to join on
-
         Returns:
             a joined pyspark DataFrame
         """
@@ -21,11 +19,9 @@ class SparkObj(object):
 
     def get_stats_summary_numeric_fields(self, df, columns):
         """ Get statistics summary for DataFrame numberic fields
-
         Args:
             df: a pyspark DataFrame
             columns ([str]): a list of numeric field names to be calculated
-
         Returns:
             stats (dict): a dictionary of statistics
         """
@@ -39,11 +35,9 @@ class SparkObj(object):
 
     def get_stats_summary_text_fields(self, df, columns):
         """ Get statistics summary for DataFrame text fields
-
         Args:
             df: a pyspark DataFrame
             columns ([str]): a list of text field names to be calculated
-
         Returns:
             stats (dict): a dictionary of statistics
         """
@@ -61,11 +55,9 @@ class SparkObj(object):
 
     def get_correlation_matrix(self, df, columns):
         """ Get correlation matrix for a pyspark DataFrame
-
         Args:
             df: a pyspark DataFrame
             columns ([str]): name of columns to be calculated
-
         Returns:
             an n x n numpy array where n is the length of input columns
         """
@@ -80,11 +72,9 @@ class SparkObj(object):
 
     def get_covariance_matrix(self, df, columns):
         """ Get covariance matrix for a pyspark DataFrame
-
         Args:
             df: a pyspark DataFrame
             columns ([str]): name of columns to be calculated
-
         Returns:
             an n x n numpy array where n is the length of input columns
         """
@@ -101,11 +91,9 @@ class SparkObj(object):
 class SparkMongoDB(SparkObj):
     def __init__(self, dbname, collection, app_name='test', master_url='local[4]'):
         """ Create SparkSession using MongoDB connector
-
         Args:
             dbname (str): database name
             collection (str): collection name
-
         Returns:
             None
         """
@@ -120,10 +108,8 @@ class SparkMongoDB(SparkObj):
 
     def create_dataframe(self):
         """ Create a pyspark DataFrame using MongoDB connector
-
         Args:
             None
-
         Returns:
             a pyspark DataFrame
         """
@@ -141,10 +127,8 @@ class SparkLocal(SparkObj):
 
     def create_dataframe(self, l_dicts):
         """ Create a pyspark DataFrame from a list of dictionaries
-
         Args:
             l_dicts ([dictionaries]): a list of dictionaries
-
         Returns:
             a pyspark DataFrame
         """
