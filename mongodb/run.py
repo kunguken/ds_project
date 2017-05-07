@@ -26,7 +26,7 @@ if __name__ == '__main__':
     numeric_fields = ['Survived', 'Age', 'Pclass', 'SibSp', 'Parch', 'Fare']
     text_fields = ['Name', 'Sex', 'Ticket', 'Cabin', 'Embarked']
 
-    db = utils.create_db(dbname, drop_on_exist=True)
+    db = utils.get_or_create_db(dbname, drop_on_exist=True)
 
     # PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked
     col_types_train = [str, int, int, str, str, float, int, int, str,float, str, str]
@@ -48,8 +48,8 @@ if __name__ == '__main__':
     df.printSchema()
     df.describe().toPandas().transpose()
 
-    stats_numeric = spark.get_stats_summary_numeric_fields(df, numeric_fields)
-    utils.pretty_print_stats(stats_numeric)
+    # stats_numeric = spark.get_stats_summary_numeric_fields(df, numeric_fields)
+    # utils.pretty_print_stats(stats_numeric)
     stats_text = spark.get_stats_summary_text_fields(df, text_fields)
     utils.pretty_print_stats(stats_text)
 

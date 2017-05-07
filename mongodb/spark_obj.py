@@ -7,9 +7,28 @@ import numpy as np
 
 class SparkObj(object):
     def join_dataframes(self, df1, df2, df1_key, df2_key):
+        """ Join two pyspark DataFrames
+
+        Args:
+            df1, df2: pyspark DataFrames
+            df1_key (str): column of df1 to join on
+            df2_key (str): column of df2 to join on
+
+        Returns:
+            a joined pyspark DataFrame
+        """
         return df1.join(df2, df1[df1_key]==df2[df2_key])
 
     def get_stats_summary_numeric_fields(self, df, columns):
+        """ Get statistics summary for DataFrame numberic fields
+
+        Args:
+            df: a pyspark DataFrame
+            columns ([str]): a list of numeric field names to be calculated
+
+        Returns:
+            stats (dict): a dictionary of statistics
+        """
         stats = defaultdict(dict)
         for col in columns:
             stats[col]['mean'] = df.select([F.mean(col)]).first()[0]
@@ -19,6 +38,15 @@ class SparkObj(object):
         return stats
 
     def get_stats_summary_text_fields(self, df, columns):
+        """ Get statistics summary for DataFrame text fields
+
+        Args:
+            df: a pyspark DataFrame
+            columns ([str]): a list of text field names to be calculated
+
+        Returns:
+            stats (dict): a dictionary of statistics
+        """
         stats = defaultdict(dict)
         for col in columns:
             stats[col]['word_counts'] = (df.select(col)
@@ -32,6 +60,15 @@ class SparkObj(object):
         return stats
 
     def get_correlation_matrix(self, df, columns):
+        """ Get correlation matrix for a pyspark DataFrame
+
+        Args:
+            df: a pyspark DataFrame
+            columns ([str]): name of columns to be calculated
+
+        Returns:
+            an n x n numpy array where n is the length of input columns
+        """
         dim = len(columns)
         corr = np.ones((dim, dim))
         for i in range(dim):
@@ -42,6 +79,15 @@ class SparkObj(object):
         return corr
 
     def get_covariance_matrix(self, df, columns):
+        """ Get covariance matrix for a pyspark DataFrame
+
+        Args:
+            df: a pyspark DataFrame
+            columns ([str]): name of columns to be calculated
+
+        Returns:
+            an n x n numpy array where n is the length of input columns
+        """
         dim = len(columns)
         cov = np.ones((dim, dim))
         for i in range(dim):
@@ -54,6 +100,15 @@ class SparkObj(object):
 
 class SparkMongoDB(SparkObj):
     def __init__(self, dbname, collection, app_name='test', master_url='local[4]'):
+        """ Create SparkSession using MongoDB connector
+
+        Args:
+            dbname (str): database name
+            collection (str): collection name
+
+        Returns:
+            None
+        """
         uri = dbname + '.' + collection
         self._spark = (SparkSession
                         .builder
@@ -64,18 +119,35 @@ class SparkMongoDB(SparkObj):
                         .getOrCreate())
 
     def create_dataframe(self):
+        """ Create a pyspark DataFrame using MongoDB connector
+
+        Args:
+            None
+
+        Returns:
+            a pyspark DataFrame
+        """
         df = self._spark.read.format("com.mongodb.spark.sql.DefaultSource").load()
         return df
 
 
 class SparkLocal(SparkObj):
     def __init__(self, app_name='test', master_url='local[4]'):
+        """ Create SparkSession """
         self._spark = (SparkSession.builder
                                   .appName(app_name)
                                   .master(master_url)
                                   .getOrCreate())
 
     def create_dataframe(self, l_dicts):
+        """ Create a pyspark DataFrame from a list of dictionaries
+
+        Args:
+            l_dicts ([dictionaries]): a list of dictionaries
+
+        Returns:
+            a pyspark DataFrame
+        """
         df = (self._spark.sparkContext.parallelize(l_dicts)
                                      .map(lambda d: Row(**OrderedDict(sorted(d.items()))))
                                      .toDF())
