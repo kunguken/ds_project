@@ -126,7 +126,13 @@ def get_histogram_numeric(ax, data, bin, col):
     return ax
 
 def get_histogram(df, columns, bins=10):
-
+""" make histogram from a df's columns
+Args:
+    df: DataFrame
+    columns: string or list
+Returns:
+    Histogram graph
+"""
     plt.rc('figure', figsize=(12,5))
 
     if type(columns) is str:
