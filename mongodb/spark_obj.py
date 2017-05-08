@@ -1,6 +1,7 @@
 from collections import OrderedDict, defaultdict
 from pyspark.sql import SparkSession, Row
 from pyspark.sql import functions as F
+import matplotlib.pyplot as plt
 import pyspark as ps
 import numpy as np
 
@@ -49,6 +50,7 @@ class SparkObj(object):
                                         .map(lambda word: (word, 1))
                                         .reduceByKey(lambda a, b: a + b)
                                         .sortBy(lambda a: a[1], ascending=False).collect())
+            stats[col]['unique_count'] = len(stats[col]['word_counts'])
             stats[col]['max'] = stats[col]['word_counts'][0]
             stats[col]['min'] = stats[col]['word_counts'][-1]
         return stats

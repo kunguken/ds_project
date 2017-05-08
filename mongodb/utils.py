@@ -2,10 +2,12 @@ import csv
 import pprint
 import pymongo
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from pymongo import MongoClient
 from collections import defaultdict
 
+numeric_fields = ['Survived', 'Age', 'Pclass', 'SibSp', 'Parch', 'Fare']
 
 def get_or_create_db(dbname, drop_on_exist=False):
     """ Create a MongoDB database or get the database if it exists already
@@ -108,3 +110,44 @@ def create_pandas_dataframe(data, index, columns):
         a pandas DataFrame
     """
     return pd.DataFrame(data, index, columns)
+
+def get_histogram_text(ax, data, keys, col):
+
+    X = range(0, len(keys))
+    ax.bar(X, data, align='center', width=0.5)
+    ax.set_xticks(X)
+    ax.set_xticklabels(keys)
+    ax.set_title(col)
+    return ax
+
+def get_histogram_numeric(ax, data, bin, col):
+    ax.hist(data, bins=bin)
+    ax.set_title(col)
+    return ax
+
+def get_histogram(df, columns, bins=10):
+
+    plt.rc('figure', figsize=(12,5))
+
+    if type(columns) is str:
+        fig, axe = plt.subplots(1,1)
+        columns, axe, bins = [columns], [axe], [bins]
+    else:
+
+        fig, axe = plt.subplots(1, len(columns))
+        if type(bins) is int:
+            bins = [bins] * len(columns)
+
+
+    for col, ax, bin in zip(columns, axe, bins):
+        if col in numeric_fields:
+            data = df.select(col).dropna().rdd.flatMap(lambda x :x).collect()
+            get_histogram_numeric(ax, data, bin, col)
+
+        else:
+            keys = df.select(col).dropna().rdd.flatMap(lambda x :x).countByValue().keys()
+            data = df.select(col).dropna().rdd.flatMap(lambda x :x).countByValue().values()
+            get_histogram_text(ax, data, keys, col)
+
+    plt.tight_layout()
+    plt.show()

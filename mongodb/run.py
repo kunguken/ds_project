@@ -38,15 +38,16 @@ if __name__ == '__main__':
 
     coll_name = 'train'
     # command line: spark-submit run.py
-    spark, df = load_all_data(db, coll_name)
+    # spark, df = load_all_data(db, coll_name)
 
     # command line: spark-submit --packages org.mongodb.spark:mongo-spark-connector_2.11:2.0.0 run.py
-    # spark, df = load_with_mongodb_connector(dbname, coll_name)
+    spark, df = load_with_mongodb_connector(dbname, coll_name)
 
     print 'dataframe count: {}'. format(df.count())
     print df.take(2)
     df.printSchema()
-    df.describe().toPandas().transpose()
+    df.toPandas().describe()
+    utils.get_histogram(df, ["Sex", "Age"], bins=10)
 
     # stats_numeric = spark.get_stats_summary_numeric_fields(df, numeric_fields)
     # utils.pretty_print_stats(stats_numeric)
